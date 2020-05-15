@@ -8,7 +8,7 @@
 
 - name: Ensure PostgreSQL data directory exists.
   file:
-    path: "{{ postgresql_data_dir }}"
+    path: "{{ postgresql_data_path }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     state: directory
@@ -16,12 +16,14 @@
 
 - name: Check if PostgreSQL database is initialized.
   stat:
-    path: "{{ postgresql_data_dir }}/PG_VERSION"
+    path: "{{ postgresql_data_path }}/PG_VERSION"
   register: pgdata_dir_version
 
 - name: Ensure PostgreSQL database is initialized.
-  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
-  when: not pgdata_dir_version.stat.exists
+  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_path }}"
+  when:
+    - not pgdata_dir_version.stat.exists
+    - postgresql_initdb | bool
   become: true
   become_user: "{{ postgresql_user }}"
   # See: https://github.com/ansible/ansible/issues/16048#issuecomment-229012509

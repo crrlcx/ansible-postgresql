@@ -58,14 +58,14 @@ Global configuration options that will be set in `postgresql.conf`. Note that fo
 
 Configure [host based authentication](https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html) entries to be set in the `pg_hba.conf`. Options for entries include:
 
-  - `type` (required)
-  - `database` (required)
-  - `user` (required)
-  - `address` (one of this or the following two are required)
-  - `ip_address`
-  - `ip_mask`
-  - `auth_method` (required)
-  - `auth_options` (optional)
+- `type` (required)
+- `database` (required)
+- `user` (required)
+- `address` (one of this or the following two are required)
+- `ip_address`
+- `ip_mask`
+- `auth_method` (required)
+- `auth_options` (optional)
 
 If overriding, make sure you copy all of the existing entries from `defaults/main.yml` if you need to preserve existing entries.
 
@@ -111,7 +111,7 @@ A list of users to ensure exist on the server. Only the `name` is required; all 
 Whether to output user data (which may contain sensitive information, like passwords) when managing users.
 
     postgresql_version: [OS-specific]
-    postgresql_data_dir: [OS-specific]
+    postgresql_data_path: [OS-specific]
     postgresql_bin_path: [OS-specific]
     postgresql_config_path: [OS-specific]
     postgresql_daemon: [OS-specific]
@@ -132,7 +132,7 @@ None.
       roles:
         - geerlingguy.postgresql
 
-*Inside `vars/main.yml`*:
+_Inside `vars/main.yml`_:
 
     postgresql_databases:
       - name: example_db
@@ -147,3 +147,4 @@ MIT / BSD
 ## Author Information
 
 This role was created in 2016 by [Jeff Geerling](https://www.jeffgeerling.com/), author of [Ansible for DevOps](https://www.ansiblefordevops.com/).
+Updated by Carrol Cox in 2020.

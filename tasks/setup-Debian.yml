@@ -1,21 +1,72 @@
 ---
-- name: Ensure PostgreSQL Python libraries are installed.
+- name: PostgreSQL | Add apt key
+  apt_key:
+    url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+    state: present
+
+- name: PostgreSQL | Add repos
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    state: present
+  register: postgresql_apt_sourcelist
+
+- name: PostgreSQL | update package cache
+  apt:
+    update_cache: yes
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  when:
+    - postgresql_apt_sourcelist.changed
+
+- name: PostgreSQL | install python libraries
   apt:
     name: "{{ postgresql_python_library }}"
-    state: present
+    state: latest
+    install_recommends: yes
+    force: yes
+    force_apt_get: yes
+    dpkg_options: "{{ dpkg_force_overwrite_configs | ternary('force-confdef,force-confnew', 'force-confdef,force-confold') }}"
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    RUNLEVEL: 1
 
-- name: Ensure PostgreSQL packages are installed.
+- name: PostgreSQL | install postgresql packages
   apt:
     name: "{{ postgresql_packages }}"
-    state: present
+    state: latest
+    install_recommends: yes
+    force: yes
+    force_apt_get: yes
+    dpkg_options: "{{ dpkg_force_overwrite_configs | ternary('force-confdef,force-confnew', 'force-confdef,force-confold') }}"
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    RUNLEVEL: 1
+
+- name: PostgreSQL | hold postgresql packages
+  become: yes
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: "hold"
+  with_items:
+    - "{{ postgresql_packages }}"
+  when:
+    - postgresql_hold_packages
 
 - name: Ensure all configured locales are present.
-  locale_gen: "name={{ item }} state=present"
-  with_items: "{{ postgresql_locales }}"
+  locale_gen:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ postgresql_locales }}"
   register: locale_gen_result
 
 - name: Force-restart PostgreSQL after new locales are generated.
   service:
     name: "{{ postgresql_daemon }}"
     state: restarted
-  when: locale_gen_result.changed
+  when:
+    - locale_gen_result.changed
