@@ -12,12 +12,12 @@
 - include_tasks: initialize.yml
 - include_tasks: configure.yml
 
-- name: Ensure PostgreSQL is started and enabled on boot.
-  service:
-    name: "{{ postgresql_daemon }}"
-    state: "{{ postgresql_service_state }}"
-    enabled: "{{ postgresql_service_enabled }}"
+# Call handlers
+- meta: flush_handlers
 
 # Configure PostgreSQL.
 - import_tasks: users.yml
+  when: postgresql_service_state != 'stopped'
+
 - import_tasks: databases.yml
+  when: postgresql_service_state != 'stopped'

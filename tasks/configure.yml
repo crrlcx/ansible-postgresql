@@ -1,7 +1,7 @@
 ---
 - name: Configure global settings | Combine
   set_fact:
-    postgresql_global_config: "{{ postgresql_global_config_defaults | combine(postgresql_global_config_override) | dict2items(key_name='option', value_name='value') }}"
+    postgresql_global_config_combine: "{{ postgresql_global_config | combine(postgresql_global_config_override) | dict2items(key_name='option', value_name='value') }}"
   tags:
     - always
 
@@ -22,13 +22,13 @@
     line: "{{ item.option }} = '{{ item.value }}'"
     state: "{{ item.state | default('present') }}"
   with_items:
-    - "{{ postgresql_global_config }}"
+    - "{{ postgresql_global_config_combine }}"
   notify:
     - restart postgresql
 
 - name: Configure host based authentication
   template:
-    src: "pg_hba.conf.j2"
+    src: pg_hba.conf.j2
     dest: "{{ postgresql_config_path }}/pg_hba.conf"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
@@ -45,3 +45,62 @@
     mode: "{{ postgresql_unix_socket_directories_mode }}"
   with_items:
     - "{{ postgresql_unix_socket_directories }}"
+
+- name: creates .pgpass
+  template:
+    src: pgpass.j2
+    dest: /var/lib/postgresql/.pgpass
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0600
+
+- name: creates recovery.conf
+  block:
+    - file:
+        dest: "{{ postgresql_data_path }}/recovery.done"
+        state: absent
+      notify:
+        - restart postgresql
+    - template:
+        src: recovery.conf.j2
+        dest: "{{ postgresql_data_path }}/recovery.conf"
+        owner: "{{ postgresql_user }}"
+        group: "{{ postgresql_group }}"
+        mode: 0664
+      notify:
+        - restart postgresql
+  when:
+    - postgresql_replication_enabled | bool
+    - ansible_host != postgresql_cluster_leader
+    - ansible_hostname != postgresql_cluster_leader
+
+- name: creates recovery.done
+  block:
+    - file:
+        dest: "{{ postgresql_data_path }}/recovery.conf"
+        state: absent
+      notify:
+        - restart postgresql
+    - template:
+        src: recovery.conf.j2
+        dest: "{{ postgresql_data_path }}/recovery.done"
+        owner: "{{ postgresql_user }}"
+        group: "{{ postgresql_group }}"
+        mode: 0664
+      notify:
+        - restart postgresql
+  when:
+    - postgresql_replication_enabled | bool
+    - ansible_host == postgresql_cluster_leader or ansible_hostname == postgresql_cluster_leader
+
+- name: drop recovery.conf
+  file:
+    dest: "{{ postgresql_data_path }}/{{ item }}"
+    state: absent
+  loop:
+    - recovery.conf
+    - recovery.done
+  notify:
+    - restart postgresql
+  when:
+    - not postgresql_replication_enabled | bool

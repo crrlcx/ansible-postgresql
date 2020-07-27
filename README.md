@@ -21,7 +21,7 @@ Available variables are listed below, along with default values (see `defaults/m
 
 (RHEL/CentOS only) You can set a repo to use for the PostgreSQL installation by passing it in here.
 
-    postgresql_restarted_state: "restarted"
+    postgresql_service_state: "restarted"
 
 Set the state of the service when configuration changes are made. Recommended values are `restarted` or `reloaded`.
 
@@ -45,8 +45,7 @@ The directories (usually one, but can be multiple) where PostgreSQL's socket wil
 Control the state of the postgresql service and whether it should start at boot time.
 
     postgresql_global_config_options:
-      - option: unix_socket_directories
-        value: '{{ postgresql_unix_socket_directories | join(",") }}'
+      - unix_socket_directories: "{{ postgresql_unix_socket_directories | join(",") }}"
 
 Global configuration options that will be set in `postgresql.conf`. Note that for RHEL/CentOS 6 (or very old versions of PostgreSQL), you need to at least override this variable and set the `option` to `unix_socket_directory`.
 
@@ -111,9 +110,10 @@ A list of users to ensure exist on the server. Only the `name` is required; all 
 Whether to output user data (which may contain sensitive information, like passwords) when managing users.
 
     postgresql_version: [OS-specific]
-    postgresql_data_path: [OS-specific]
+    postgresql_cluster: [OS-specific. optional]
     postgresql_bin_path: [OS-specific]
     postgresql_config_path: [OS-specific]
+    postgresql_data_path: [OS-specific]
     postgresql_daemon: [OS-specific]
     postgresql_packages: [OS-specific]
 

@@ -1,5 +1,29 @@
 ---
-- name: restart postgresql
+- name: reload systemd config
+  systemd:
+    daemon_reload: true
+  listen:
+    - restart postgresql
+  when:
+    - ansible_service_mgr == 'systemd'
+
+- name: handle postgresql service state is 'postgresql_service_state'
   service:
     name: "{{ postgresql_daemon }}"
-    state: "{{ postgresql_restarted_state }}"
+    state: "{{ postgresql_service_state }}"
+    enabled: "{{ postgresql_service_enabled }}"
+  listen:
+    - restart postgresql
+
+- name: wait for 'postgresql_listen_port' to become open on the host
+  wait_for:
+    host: "{{ hostvars[inventory_hostname]['inventory_hostname'] }}"
+    port: "{{ postgresql_listen_port }}"
+    state: started
+    timeout: 30
+    delay: 5
+  ignore_errors: true
+  when:
+    - postgresql_service_state != 'stopped'
+  listen:
+    - restart postgresql

@@ -1,16 +1,14 @@
 {{ ansible_managed | comment }}
 # PostgreSQL Client Authentication Configuration File
 # ===================================================
-#
 # See: https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html
-
 {% if postgresql_hba_entries_defaults | length > 0 %}
 {%   for client in postgresql_hba_entries_defaults %}
-{{ client.type }} {{ client.database }} {{ client.user }} {{ client.address|default('') }} {{ client.ip_address|default('') }} {{ client.ip_mask|default('') }} {{ client.auth_method }} {{ client.auth_options|default("") }}
+{{ client.type }} {{ client.database }} {{ client.user }} {{ client.address | d('') }} {{ client.ip_address | d('') }} {{ client.ip_mask | d('') }} {{ client.auth_method }} {{ client.auth_options | d('') }}
 {%   endfor %}
 {% endif %}
 {% if postgresql_hba_entries | length > 0 %}
 {%   for client in postgresql_hba_entries %}
-{{ client.type }} {{ client.database }} {{ client.user }} {{ client.address|default('') }} {{ client.ip_address|default('') }} {{ client.ip_mask|default('') }} {{ client.auth_method }} {{ client.auth_options|default("") }}
+{{ client.type }} {{ client.database }} {{ client.user }} {{ client.address | d('') }} {{ client.ip_address | d('') }} {{ client.ip_mask | d('') }} {{ client.auth_method }} {{ client.auth_options | d('') }}
 {%   endfor %}
 {% endif %}

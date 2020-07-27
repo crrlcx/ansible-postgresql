@@ -1,0 +1,6 @@
+{{ ansible_managed | comment }}
+standby_mode = 'on'
+primary_conninfo = 'host={{ postgresql_cluster_leader }} port={{ postgresql_listen_port }} user=replicator'
+trigger_file = '/tmp/postgresql.trigger'
+restore_command = '/usr/local/scripts/walg-fetch.sh "%f" "%p"'
+archive_cleanup_command = 'pg_archivecleanup {{ postgresql_data_path }}/pg_xlog "%r"'

@@ -1,0 +1,5 @@
+{% if postgresql_pgpass | length > 0 %}
+{%   for entity in postgresql_pgpass %}
+{{ entity.address | d('*') }}:{{ entity.port | d('5432')}}:{{ entity.db_name | d('*') }}:{{ entity.db_user | d(postgresql_user) }}:{{ entity.db_password | d('') }}
+{%   endfor %}
+{% endif %}

@@ -1,6 +1,6 @@
 ---
 # RHEL/CentOS only. Set a repository to use for PostgreSQL installation.
-postgresql_enablerepo: ""
+postgresql_enablerepo: ''
 
 # Ubuntu / Debian only
 dpkg_force_overwrite_configs: false
@@ -8,7 +8,8 @@ postgresql_hold_packages: true
 
 # Set postgresql state when configuration changes are made. Recommended values:
 # `restarted` or `reloaded`
-postgresql_restarted_state: "restarted"
+postgresql_service_state: restarted
+postgresql_service_enabled: true
 
 postgresql_python_library: python-psycopg2
 postgresql_user: postgres
@@ -17,23 +18,24 @@ postgresql_group: postgres
 postgresql_unix_socket_directories:
   - /var/run/postgresql
 
-postgresql_service_state: started
-postgresql_service_enabled: true
-
 # Cluster name
 postgresql_cluster: 'main'
+postgresql_cluster_leader: "{{ hostvars[groups[postgresql_hosts][0]].ansible_host | d(hostvars[groups[postgresql_hosts][0]].inventory_hostname_short) }}"
+
+postgresql_listen_addr: 127.0.0.1
+postgresql_listen_port: 5432
 
 # Global configuration options that will be set in postgresql.conf.
 postgresql_global_config_override: []
-postgresql_global_config_defaults:
-  - unix_socket_directories: "{{ postgresql_unix_socket_directories | join(',') }}"
+postgresql_global_config:
+  unix_socket_directories: "{{ postgresql_unix_socket_directories | join(',') }}"
 
 # Host based authentication (hba) entries to be added to the pg_hba.conf. This
 # variable's defaults reflect the defaults that come with a fresh installation.
-postgresql_hba_entries: []
 postgresql_hba_entries_defaults:
   - {type: local, database: all, user: all, auth_method: peer}
-  - {type: local, database: all, user: postgres, auth_method: peer}
+  - {type: local, database: all, user: "{{ postgresql_user }}", auth_method: peer}
+postgresql_hba_entries:
   - {type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5}
   - {type: host, database: all, user: all, address: '::1/128', auth_method: md5}
 
@@ -73,6 +75,10 @@ postgresql_users: []
 #   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
 #   port: # defaults to not set
 #   state: # defaults to 'present'
+
+postgresql_pgpass: []
+
+postgresql_replication_enabled: true
 
 # Whether to output user data when managing users.
 postgres_users_no_log: true
