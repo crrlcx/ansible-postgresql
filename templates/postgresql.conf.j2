@@ -1,7 +1,6 @@
 {{ ansible_managed | comment }}
-
-{% if postgresql_global_config | length > 0 %}
-{%  for config in postgresql_global_config %}
-{{ config.option }} = {{ config.value }}
+{% if postgresql_global_config_combine | length > 0 %}
+{%  for var in postgresql_global_config_combine %}
+{{ var.option }} = {{ var.value }}
 {%  endfor %}
 {% endif %}
