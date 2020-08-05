@@ -1,11 +1,11 @@
 ---
-- name: reload systemd config
+- name: to be sure that systemd config is reload
   systemd:
     daemon_reload: true
-  listen:
-    - restart postgresql
   when:
     - ansible_service_mgr == 'systemd'
+  listen:
+    - restart postgresql
 
 - name: handle postgresql service state is 'postgresql_service_state'
   service:

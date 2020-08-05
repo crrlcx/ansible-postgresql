@@ -15,6 +15,11 @@
 # Call handlers
 - meta: flush_handlers
 
+- name: check postgresql service state
+  service:
+    name: postgresql
+    state: "{{ (postgresql_service_state == 'stopped') | ternary('stopped', 'started') }}"
+
 # Configure PostgreSQL.
 - import_tasks: users.yml
   when: postgresql_service_state != 'stopped'
